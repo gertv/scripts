@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for file in `find . -name pom.xml`; do 
+  mv $file $file.orig
+  sed s/$1/$2/ < $file.orig > $file
+  rm $file.orig
+done

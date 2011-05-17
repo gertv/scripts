@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "Downloading authors file"
+cd .git; wget http://git.apache.org/authors.txt; cd ..
+git config svn.authorsfile ".git/authors.txt"
+
+echo "Setting up $1"
+git svn init --prefix=origin/ --tags=tags --trunk=trunk --branches=branches $1
+
+echo "Rebasing..."
+git svn rebase
