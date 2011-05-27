@@ -1,0 +1,52 @@
+#!/usr/bin/ruby
+#= Overview
+# fix-version-conflict removes conflicts that usually occur when merging POMs after 
+# a release has been cut from one of the branches by selecting the version specified 
+# when running the command
+#
+#= Usage
+#
+#  Usage:  fix-version-conflict <version_to_keep>
+#
+
+require 'rdoc/usage'
+
+RDoc::usage() if ARGV.empty?
+
+VERSION_REGEX=Regexp.new(Regexp.escape("<version>#{ARGV[0]}</version>"))
+
+puts "Resolving version conflicts by setting version to #{VERSION}"
+
+Dir.glob("**/pom.xml") { |pom|
+  puts "Fixing #{pom}"
+    
+  lines = File.open(pom, 'r') { |file| file.readlines }
+    
+  File.open(pom, 'w') { |file|
+  
+    skip = 0
+    
+    lines.each_index { |index|
+	  skip = skip - 1
+	  next if skip > 0
+      
+      # one-line conflict ?
+      if lines[index] =~ /^<<<<<<</ and lines[index + 2] =~ /^=======/ and lines[index + 4] =~ /^>>>>>>>/
+		if (lines[index + 1] =~ VERSION_REGEX) then
+		  puts "- fixing a conflict on line #{index}"
+		  file.puts lines[index + 1]
+		  skip = 5
+		elsif (lines[index + 3] =~ VERSION_REGEX) then
+		  puts "- fixing a conflict on line #{index}"		
+		  file.puts lines[index + 3]		  
+		  skip = 5
+		else 
+		  file.puts lines[index]
+		end
+      else 
+        file.puts lines[index]
+      end
+    }
+  }
+
+}
