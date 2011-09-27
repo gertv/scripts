@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ARCHIVE=$1
+DIRNAME=`tar tf $ARCHIVE | sort -d | head -1` 
+
+echo "- Removing $DIRNAME"
+rm -Rf $DIRNAME
+echo "- Extracting $ARCHIVE"
+tar xzf $ARCHIVE
+echo "- Done!"
+cd $DIRNAME

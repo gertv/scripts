@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+
+require 'ftools'
+
+TEXT = [/\.java$/, /\.properties$/, /\.xml$/, /\.wsdl$/, /\.xsd$/, /\.wsdl2$/,
+        /\.html$/, /\.rb$/]
+
+puts "Detabbing..."
+
+def detab(file) 
+  backup = "#{file}.bak"
+  File.copy(file, backup)
+
+  File.open(file, "w") { |output|
+    File.open(backup).each { |line|
+      output.puts line.gsub(/\t/, "    ")
+    }
+  } 
+end
+
+def text?(file)
+  not TEXT.select { |regex| file =~ regex }.empty?
+end
+
+Dir.glob("**/pom.xml") { |pom| detab(pom) }
+
+Dir.glob("**/src/**/*.*") { |file| detab(file) if text?(file) }
