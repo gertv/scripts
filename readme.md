@@ -10,3 +10,7 @@ Contents
 * `kill-karaf` kills all running Apache Karaf/ServiceMix instances
 * `kit` is just a stupid helper to quickly extract an assembly tarball - using this with `alias kit='. /path/to/kit'` to ensure you automatically end up in the installation directory.
 * `mvn-settings` allows switching between multiple Apache Maven settings.xml files, useful when switching between customer environments
+
+Asus UX31A
+----------
+* `backlightfix` is a fix to get the backlight function keys working on my Asus UX31A (called from `rc.local` during system startup)
