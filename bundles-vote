@@ -1,0 +1,91 @@
+#!/usr/bin/ruby
+
+require 'net/https'
+require 'rexml/document'
+require 'uri'
+
+include REXML
+
+/*
+ * Class to represent a Maven artifact
+ */
+class Artifact
+ 
+ attr_accessor :groupId, :artifactId, :version
+ 
+ def initialize(groupId, artifactId, version)
+   @groupId=groupId
+   @artifactId=artifactId
+   @version=version
+ end
+ 
+ def to_s
+   "mvn:#{@groupId}/#{@artifactId}/#{@version}"
+ end
+ 
+end
+
+/*
+ * Class to access Apache's Nexus repository
+ */
+class Nexus
+
+  def initialize(repository)
+    @repository=repository
+  end
+  
+  def find(groupId)
+    artifacts=Array.new()
+
+    uri = URI.parse("https://repository.apache.org/service/local/lucene/search?g=#{groupId}&repositoryId=#{@repository}")
+
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+    request = Net::HTTP::Get.new(uri.request_uri)
+    response = http.request(request)
+
+    doc = REXML::Document.new(response.body)
+
+    doc.elements.each('searchNGResponse/data/artifact') { |element|
+      artifacts.push(
+        Artifact.new(
+          XPath.first(element, 'groupId').text,
+          XPath.first(element, 'artifactId').text,
+          XPath.first(element, 'version').text  
+        ))
+    }
+    
+    artifacts
+  end
+
+end
+
+/* And now... the actual script itself*/
+
+if (ARGV.length == 0) then
+  puts "Usage: #{$0} <repository id>"  
+  puts
+  puts " example: #{$0} orgapacheservicemix-320"
+  puts
+  exit -1
+end
+
+REPO=ARGV[0]
+
+nexus = Nexus.new(REPO)
+artifacts = nexus.find("org.apache.servicemix.bundles")
+
+puts
+puts "To install the bundles in Karaf:"
+artifacts.each { |artifact|
+    puts "  osgi:install -s #{artifact}"
+}
+
+puts 
+puts "To build from source (using the Apache git repository):"
+artifacts.each { |artifact|
+    puts "  git checkout #{artifact.artifactId}-#{artifact.version}"
+    puts "  mvn clean install"
+}

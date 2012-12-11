@@ -4,6 +4,7 @@ Contents
 --------
 
 * `bump` is a simple script that updates POM files to a given version
+* `bundles-vote` will generate a set of commands for testing a set of Apache ServiceMix bundles
 * `detab` walks over a Maven source tree and replaces all the TABs with 4 spaces
 * `fix-version-conflict` fixes single-line `<version/>` merge conflicts in POMs 
 * `git-init-apache` is a script to init Apache git repositories for git-svn usage
