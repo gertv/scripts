@@ -1,91 +1,60 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby	
 
 require 'net/https'
-require 'rexml/document'
-require 'uri'
+require 'rexml/document'	
 
-include REXML
+abort("Usage: vote-on-bundle <repository id> [<repository id>]") unless ARGV.length >= 1
 
-/*
- * Class to represent a Maven artifact
- */
-class Artifact
- 
- attr_accessor :groupId, :artifactId, :version
- 
- def initialize(groupId, artifactId, version)
-   @groupId=groupId
-   @artifactId=artifactId
-   @version=version
- end
- 
- def to_s
-   "mvn:#{@groupId}/#{@artifactId}/#{@version}"
- end
- 
-end
+REPO_ID=ARGV[0]
+START_URL="https://repository.apache.org/service/local/repositories/#{REPO_ID}/content/org/apache/servicemix/bundles/"
 
-/*
- * Class to access Apache's Nexus repository
- */
-class Nexus
+def get(url) 
+  uri = URI.parse(url)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-  def initialize(repository)
-    @repository=repository
-  end
-  
-  def find(groupId)
-    artifacts=Array.new()
+  request = Net::HTTP::Get.new(uri.request_uri)
 
-    uri = URI.parse("https://repository.apache.org/service/local/lucene/search?g=#{groupId}&repositoryId=#{@repository}")
+  response = http.request(request)
+  REXML::Document.new(response.body)
+end 
 
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+def findGAVs
+  ARGV.each { |repo|
+    puts "Reading GAV information from the repository #{repo}"
+    url="https://repository.apache.org/service/local/repositories/#{repo}/content/org/apache/servicemix/bundles/"
+    get(url).elements.each('content/data/content-item[leaf="false"]') do |item|
+      artifactId=item.elements["text"].text
+      get(item.elements["resourceURI"].text).elements.each('content/data/content-item[leaf="false"]') do |version|
+        version=version.elements["text"].text
+        yield "org.apache.servicemix.bundles", artifactId, version
+      end
+    end
+  }
+end 
 
-    request = Net::HTTP::Get.new(uri.request_uri)
-    response = http.request(request)
+mvn_urls=Array.new
+tags=Array.new
 
-    doc = REXML::Document.new(response.body)
 
-    doc.elements.each('searchNGResponse/data/artifact') { |element|
-      artifacts.push(
-        Artifact.new(
-          XPath.first(element, 'groupId').text,
-          XPath.first(element, 'artifactId').text,
-          XPath.first(element, 'version').text  
-        ))
-    }
-    
-    artifacts
-  end
-
-end
-
-/* And now... the actual script itself*/
-
-if (ARGV.length == 0) then
-  puts "Usage: #{$0} <repository id>"  
-  puts
-  puts " example: #{$0} orgapacheservicemix-320"
-  puts
-  exit -1
-end
-
-REPO=ARGV[0]
-
-nexus = Nexus.new(REPO)
-artifacts = nexus.find("org.apache.servicemix.bundles")
+findGAVs { |groupId, artifactId, version| 
+  puts "- found bundle #{artifactId} #{version}"
+  mvn_urls << "mvn:#{groupId}/#{artifactId}/#{version}"
+  tags << "#{artifactId}-#{version}"
+}
 
 puts
-puts "To install the bundles in Karaf:"
-artifacts.each { |artifact|
-    puts "  osgi:install -s #{artifact}"
+puts "To install the staged bundles in Karaf, use these commands:"
+puts "-----------------------------------------------------------"
+mvn_urls.each { |url|
+  puts "osgi:install -s #{url}"
 }
 
 puts 
-puts "To build from source (using the Apache git repository):"
-artifacts.each { |artifact|
-    puts "  git checkout #{artifact.artifactId}-#{artifact.version}"
-    puts "  mvn clean install"
+puts "You can build the tags from your Git repository with these command:"
+puts "-------------------------------------------------------------------"
+tags.each { |tag|
+  puts "git checkout #{tag}"
+  puts "mvn clean install"
 }
