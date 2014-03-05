@@ -55,6 +55,7 @@ puts
 puts "You can build the tags from your Git repository with these command:"
 puts "-------------------------------------------------------------------"
 tags.each { |tag|
-  puts "git checkout #{tag}"
-  puts "mvn clean install"
+  puts "git checkout #{tag} &&"
+  puts "mvn clean install &&"
 }
+puts "echo \"== Done ==\""
