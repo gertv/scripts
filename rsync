@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/syno/bin/rsync.bin --perms --chmod=o-t "$@"

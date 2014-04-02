@@ -11,6 +11,7 @@ Contents
 * `kill-karaf` kills all running Apache Karaf/ServiceMix instances
 * `kit` is just a stupid helper to quickly extract an assembly tarball - using this with `alias kit='. /path/to/kit'` to ensure you automatically end up in the installation directory.
 * `mvn-settings` allows switching between multiple Apache Maven settings.xml files, useful when switching between customer environments
+* `rsync` is a script to allow my Synology NAS to backup to a FreeBSD host
 
 Asus UX31A
 ----------
