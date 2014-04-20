@@ -1,0 +1,13 @@
+#!/bin/bash
+
+REPO=$1
+URL=https://git-wip-us.apache.org/repos/asf/$REPO.git
+
+echo "Setting up Apache git repository - $URL"
+echo
+
+git clone $URL
+
+cd $REPO
+git config user.name "Gert Vanthienen"
+git config user.email gertv@apache.org
