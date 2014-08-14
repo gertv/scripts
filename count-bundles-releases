@@ -1,0 +1,24 @@
+#!/usr/bin/ruby
+
+require 'date'
+
+lastdate = nil
+bundles = Array.new()
+
+`git log --grep "prepare release" --format="%ai|%s"`.each_line do |line|
+
+  datetime = DateTime.parse(line.split('|').first)
+  dateonly = datetime.to_date()
+
+  if (!lastdate || dateonly == lastdate || dateonly == lastdate - 1) then
+    bundles << line.split('|').last
+  else
+    puts "#{bundles.uniq.size()} bundles released on #{lastdate}"
+    bundles.uniq.sort.each do |bundle|
+      puts "- #{bundle}"
+    end
+    bundles.clear()
+  end
+
+  lastdate = dateonly
+end

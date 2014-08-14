@@ -1,0 +1,24 @@
+#!/usr/bin/env scala
+
+import java.io.{File,FileInputStream}
+import java.util.jar.JarInputStream
+
+def files(f: File): Stream[File] =
+  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(files)
+         else Stream.empty)
+
+def jars(f: File): Stream[File] =
+  files(f) filter(_.getName.endsWith(".jar"))
+
+def readManifest(f: File) =
+  try {
+    val jis = new JarInputStream(new FileInputStream(f))
+    jis.getManifest()
+  } catch {
+    case e: Exception => printf("Error reading MANIFEST.MF in %s: %s%n", f, e.getMessage)
+  }
+
+
+for (jar <- jars(new File("."))) {
+ readManifest(jar)
+}
