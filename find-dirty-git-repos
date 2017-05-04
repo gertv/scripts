@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+import sys
+import glob
+import os
+
+import subprocess
+
+def workingdir(gitdir):
+    return os.path.dirname(gitdir)
+
+def status(gitdir):
+    worktree = workingdir(gitdir)
+    lines = subprocess.check_output(['git', "--work-tree=%(worktree)s" % locals(), "--git-dir=%(gitdir)s" % locals(), 'status', '--porcelain']).decode().split('\n')
+    return (line for line in lines if len(line) > 0)
+
+if len(sys.argv) < 2:
+    cmd = sys.argv[0]
+    print("Usage: %(cmd)s <location>" % locals())
+    exit(-1)
+
+root = sys.argv[1]
+print("Scanning %(root)s" % locals())
+
+repos = { workingdir(gitdir): status(gitdir) for gitdir in glob.iglob("%(root)s/**/.git" % locals(), recursive = True) }
+
+for k, v in repos.items():
+    count = len(list(v))
+    if count == 0:
+        print("%(k)s is clean" % locals())
+    else:
+        print("%(k)s has %(count)s pending changes" % locals())
