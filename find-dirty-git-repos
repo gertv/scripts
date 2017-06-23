@@ -23,9 +23,13 @@ print("Scanning %(root)s" % locals())
 
 repos = { workingdir(gitdir): status(gitdir) for gitdir in glob.iglob("%(root)s/**/.git" % locals(), recursive = True) }
 
+clean = 0
 for k, v in repos.items():
     count = len(list(v))
     if count == 0:
-        print("%(k)s is clean" % locals())
+        clean += 1
     else:
-        print("%(k)s has %(count)s pending changes" % locals())
+        print("- %(k)s has %(count)s pending changes" % locals())
+
+print()
+print("%(clean)s repositories are clean" % locals())
