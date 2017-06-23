@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import sys
+import glob
+import os
+import subprocess
+
+def workingdir(gitdir):
+    return os.path.dirname(gitdir)
+
+def logs(gitdir, date):
+    worktree = workingdir(gitdir)
+    lines = subprocess.check_output(['git', "--work-tree=%(worktree)s" % locals(), "--git-dir=%(gitdir)s" % locals(), 'log', '--format=format:%ai | %s', '--author', 'gert', "--author-date-order"  , '--after', "%(date)s 00:00" % locals(), '--before', "%(date)s 23:59" % locals()]).decode().split('\n')
+    return (line for line in lines if len(line) > 0)
+
+if len(sys.argv) < 3:
+    cmd = sys.argv[0]
+    print("Usage: %(cmd)s <location> <date>" % locals())
+    exit(-1)
+
+root = sys.argv[1]
+date = sys.argv[2]
+print("Scanning %(root)s for changes on %(date)s" % locals())
+
+repos = { workingdir(gitdir): logs(gitdir, date) for gitdir in glob.iglob("%(root)s/**/.git" % locals(), recursive = True) }
+
+for k, v in repos.items():
+    lines = list(v)
+    count = len(lines)
+    if count != 0:
+        print()
+        print("%(k)s" % locals())
+        print("---")
+        for commit in lines:
+            print("- %(commit)s" % locals())
