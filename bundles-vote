@@ -48,14 +48,17 @@ puts
 puts "To install the staged bundles in Karaf, use these commands:"
 puts "-----------------------------------------------------------"
 mvn_urls.each { |url|
-  puts "osgi:install -s #{url}"
+  puts "bundle:install #{url};"
 }
 
 puts 
 puts "You can build the tags from your Git repository with these command:"
 puts "-------------------------------------------------------------------"
 tags.each { |tag|
+  directory = tag[30..-1].sub(/_[0-9]*$/, "")
   puts "git checkout #{tag} &&"
+  puts "cd #{directory} &&"
   puts "mvn clean install &&"
+  puts "cd .."
 }
 puts "echo \"== Done ==\""
