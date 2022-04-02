@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Convert jstat output to a CSV file')
+parser.add_argument('jstat_file', metavar='jstat_file',
+                    help='The jstat output file to be converted to a CSV file')
+args = parser.parse_args()
+
+with open(args.jstat_file) as input:
+    for line in input:
+        if "warning" in line.lower():
+            continue
+
+        elems = line.split()
+
+        print(";".join(elems))
