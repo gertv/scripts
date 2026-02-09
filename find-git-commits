@@ -10,7 +10,7 @@ def workingdir(gitdir):
 
 def logs(gitdir, date):
     worktree = workingdir(gitdir)
-    lines = subprocess.check_output(['git', "--work-tree=%(worktree)s" % locals(), "--git-dir=%(gitdir)s" % locals(), 'log', '--format=format:%ai | %s', '--author', 'gert', "--author-date-order"  , '--after', "%(date)s 00:00" % locals(), '--before', "%(date)s 23:59" % locals()]).decode().split('\n')
+    lines = subprocess.check_output(['git', "--work-tree=%(worktree)s" % locals(), "--git-dir=%(gitdir)s" % locals(), 'log', '--all', '--format=format:%ai | %s', '--author', 'gert', "--author-date-order"  , '--after', "%(date)s 00:00" % locals(), '--before', "%(date)s 23:59" % locals()]).decode().split('\n')
     return (line for line in lines if len(line) > 0)
 
 if len(sys.argv) < 3:
